@@ -1,4 +1,3 @@
-package Final_Event;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -17,7 +16,7 @@ public class Final_Event {
 
         // --- อ่านภาพหลักจากไฟล์ ---
         // การอ่านภาพ BMP เข้ามาเป็น BufferedImage เพื่อใช้ประมวลผล
-        im.read("Final_Event\\raw\\FinalDIP67.bmp");
+        im.read("./raw/FinalDIP67.bmp");
 
         // --- กำหนดจุด 4 จุดในภาพต้นฉบับและจุดเป้าหมายสำหรับ Homography ---
 
@@ -36,27 +35,27 @@ public class Final_Event {
         // --- นำ Homography ไป Warp ภาพ ---
         // Warp image ปรับ perspective ให้ตรงตามที่ต้องการ
         im.applyHomography(H);
-        im.write("Final_Event\\output\\step1_warped.bmp");
+        im.write("./output/step1_warped.bmp");
 
         // --- Preprocess: แปลงภาพเป็น Grayscale ---
         // ลดข้อมูล RGB เป็น grayscale เพื่อเตรียม thresholding
         im.toGrayscale();
-        im.write("Final_Event\\output\\step2_toGrayscale.bmp");
+        im.write("./output/step2_toGrayscale.bmp");
 
         // --- Denoise: ลด noise ในภาพ ---
         im.gaussianBlur(3, 3); // Gaussian Blur: ลด noise แบบ smoothing โดย size 3x3 และ sigma=3
         im.medianFilter(3); // Median Filter: ลด noise แบบ impulse noise โดย size 3x3
-        im.write("Final_Event\\output\\step3_denoise.bmp");
+        im.write("./output/step3_denoise.bmp");
 
         // --- Thresholding: แปลงเป็น Binary image ---
         // หา threshold อัตโนมัติ โดยวิเคราะห์ histogram
         im.otsuThreshold();
-        im.write("Final_Event\\output\\step4_otsuThreshold.bmp");
+        im.write("./output/step4_otsuThreshold.bmp");
 
         // --- Morphological operations ---
         im.morphologicalOpening(1); // Opening (Erosion->Dilation): ลบจุดรบกวนเล็ก ๆ
         im.morphologicalClosing(2); // Closing (Dilation->Erosion): เติมช่องว่างเล็ก ๆ
-        im.write("Final_Event\\output\\step5_morphological.bmp");
+        im.write("./output/step5_morphological.bmp");
 
         // --- Crop ขอบภาพเล็กน้อย เพื่อไม่ให้มี artifacts ขอบ ---
         for (int y = 0; y < im.height; y++) {
@@ -68,16 +67,16 @@ public class Final_Event {
         }
 
         // --- Segment digits: แยกตัวเลขแต่ละตัวออกมาเป็นไฟล์ PNG ---
-        String digitDir = "Final_Event\\output\\digits_output";
+        String digitDir = "./output/digits_output";
         im.segmentDigits(digitDir);
 
         // --- Load template digits ---
         // template เป็นภาพของตัวเลข 0-9 โดยเราจะเปรียบเทียบ Hamming distance กับ digit
         // ในภาพ
-        Map<Integer, int[][]> templates = im.loadTemplates("Final_Event\\template_digits", 128);
+        Map<Integer, int[][]> templates = im.loadTemplates("template_digits", 128);
 
         // --- Match digits ทั้งหมดในภาพ ---
-        String finalOutput = im.matchAllDigits("Final_Event\\output\\digits_output", templates, 128);
+        String finalOutput = im.matchAllDigits("./output/digits_output", templates, 128);
         System.out.println("Final output: " + finalOutput);
 
         /*
